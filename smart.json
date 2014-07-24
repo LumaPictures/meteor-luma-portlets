@@ -5,5 +5,15 @@
   "author": "Austin Rivas <austinrivas@gmail.com> (https://github.com/austinrivas)",
   "version": "0.0.1",
   "git": "https://github.com/LumaPictures/meteor-luma-portlets",
-  "packages": {}
+  "packages": {
+    "luma-router": {
+      "git": "https://github.com/LumaPictures/meteor-luma-router.git",
+      "branch": "master"
+    },
+    "luma-auth": {
+      "git": "https://github.com/LumaPictures/meteor-luma-auth.git",
+      "branch": "master"
+    },
+    "luma-ui": {}
+  }
 }

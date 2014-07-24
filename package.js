@@ -5,7 +5,10 @@ Package.describe({
 Package.on_use(function (api, where) {
   api.use([
     'coffeescript',
-    'underscore'
+    'underscore',
+    'luma-router',
+    'luma-auth',
+    'luma-ui'
   ],[ 'client', 'server' ]);
 
   // for helpers
@@ -21,6 +24,17 @@ Package.on_use(function (api, where) {
   api.add_files([
     'lib/luma-portlets.coffee'
   ], [ 'client', 'server' ]);
+
+  api.add_files([
+    'lib/components/portlet/portlet.html',
+    'lib/components/portlet/portlet.coffee',
+    'lib/views/portlet_placeholder/portlet_placeholder.html',
+    'lib/views/portlet_placeholder/portlet_placeholder.coffee',
+    'lib/views/portlet_options/portlet_options.html',
+    'lib/views/portlet_options/portlet_options.coffee',
+    'lib/views/portlet_config/portlet_config.html',
+    'lib/views/portlet_config/portlet_config.coffee'
+  ], [ 'client' ]);
 });
 
 Package.on_test(function (api) {

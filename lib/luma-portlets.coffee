@@ -1,1 +1,2 @@
 # luma-portlets
+Luma.Portlets = {}

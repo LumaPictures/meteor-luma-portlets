@@ -1,0 +1,85 @@
+<template name="portlet_options">
+    <div class="row">
+        <div class="col-sm-12">
+            <h3>Save Preset Config</h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="{{#if current_user_has_presets }}col-sm-5{{else}}col-sm-12{{/if}}">
+            <input id="preset-name" type="text" placeholder="Save As" class="form-control" style="height:100%;"/>
+        </div>
+        {{#if current_user_has_presets }}
+        <div class="col-sm-2" style="text-align:center;">
+            <h4>OR</h4>
+        </div>
+        <div class="col-sm-5">
+            {{#Select2 select_preset }}
+                {{#each select_preset.cursor }}
+                    <option value="{{name}}">{{name}}</option>
+                {{/each}}
+            {{/Select2}}
+        </div>
+        {{/if}}
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-lg-12">
+            {{#alert trigger=preset_save_validation status=preset_save_validation.status }}
+                {{preset_save_validation.message}}
+            {{/alert}}
+            <button id="save-configuration" class="btn btn-block btn-success" type="button">Save</button>
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-sm-12">
+            <h3>Load Preset Config</h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="{{#if selected_user }}col-sm-5{{else}}col-sm-12{{/if}}">
+            {{#Select2 select_user }}
+                {{#each select_user.cursor }}
+                    <option value="{{profile.id}}">{{profile.id}}</option>
+                {{/each}}
+            {{/Select2}}
+        </div>
+        {{#if selected_user }}
+        <div class="col-sm-2" style="text-align:center;">
+            <h4>AND</h4>
+        </div>
+        <div class="col-sm-5">
+            {{#Select2 load_preset }}
+                <option value="CURRENT_CONFIG">Current Config</option>
+                {{#each load_preset.cursor }}
+                    <option value="{{name}}">{{name}}</option>
+                {{/each}}
+            {{/Select2}}
+        </div>
+        {{/if}}
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-sm-12">
+            {{#alert trigger=preset_load_validation status=preset_load_validation.status }}
+                {{preset_load_validation.message}}
+            {{/alert}}
+        </div>
+    </div>
+    {{#if selected_preset }}
+    <br />
+    <div class="row">
+        <div class="col-sm-12">
+            <pre>
+{{toJSON selected_preset_config.query }}
+            </pre>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-lg-12">
+            <button id="load-configuration" class="btn btn-block btn-danger" type="button">Load</button>
+        </div>
+    </div>
+    {{/if}}
+</template>
