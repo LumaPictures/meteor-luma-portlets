@@ -1,8 +1,8 @@
 Template.portlet_placeholder.helpers
 
-  portlet_options: ->
+  portlet_config: ->
     return {
-      selector: "#{ @region }-portlet-options"
-      label: "Portlet Options"
+      selector: "#{ @region }-portlet-config"
+      label: "Portlet Config"
       template: "portlet_config"
     }

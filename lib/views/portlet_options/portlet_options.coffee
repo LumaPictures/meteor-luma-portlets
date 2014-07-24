@@ -26,7 +26,7 @@ Template.portlet_options.helpers
     userId = Luma.Portlets.get @region, "selected_user"
     preset = Luma.Portlets.get @region, "selected_preset"
     route = Luma.Router.current().route.name
-    portlet = Luma.Portlets.get @region, "portlet"
+    portlet = Luma.Portlets.set @region, "portlet"
     if preset and userId
       query = 'profile.id': userId
       query[ "profile.portlets.#{ route }.#{ @region }.portlet" ] = portlet

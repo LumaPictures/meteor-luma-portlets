@@ -6,6 +6,14 @@ if Meteor.isClient
 
     _dictionaries: {}
 
+    _portlets: {
+      portlet_placeholder:
+        label: "None"
+        template: "portlet_placeholder"
+    }
+
+    add_portlet: ( portlet ) -> @_portlets[ portlet.template ] = portlet
+
     _add_computation: ( region, computation ) -> @_computations[ region ] = computation
 
     _stop_computation: ( region ) -> @_computations[ region ].stop() if @_computations[ region ] and @_computations[ region ].stop
@@ -47,28 +55,29 @@ if Meteor.isClient
     get_config: ( region ) -> JSON.parse @get region, "config"
 
     initialize: ( route, portlets ) ->
-      if portlets
+      if _.isArray portlets
         # set all the route portlets as session variables
         for portlet, key in portlets
-          @_add_dictionary portlet.region
-          if portlet.config
-            user = Deps.nonreactive -> Meteor.user()
-            if user
-              user_portlets = user.profile.portlets
-              user_portlets[ route ] = {} unless user_portlets[ route ]
-              unless user_portlets[ route ][ portlet.region ]
-                user_portlets[ route ][ portlet.region ] = portlet
-                selector = _id: user._id
-                modifier = $set: {}
-                unless user_portlets[ route ]
-                  modifier.$set[ "profile.portlets.#{ route }" ] = user_portlets[ route ]
-                else modifier.$set[ "profile.portlets.#{ route }.#{ portlet.region }" ] = portlet
-                Deps.nonreactive -> Meteor.users.update selector, modifier
-              portlet = Deps.nonreactive -> Meteor.user().profile.portlets[ route ][ portlet.region ]
-          for key, value of portlet
-            console.log "portlet", portlet
-            console.log key, value
-            Deps.nonreactive => @set portlet.region, key, value
+          @initialize_portlet route, portlet
+
+    initialize_portlet: ( route, portlet ) ->
+      @_add_dictionary portlet.region
+      if _.isObject portlet.config
+        user = Deps.nonreactive -> Meteor.user()
+        if _.isObject user
+          user_portlets = user.profile.portlets
+          user_portlets[ route ] = {} unless user_portlets[ route ]
+          unless user_portlets[ route ][ portlet.region ]
+            user_portlets[ route ][ portlet.region ] = portlet
+            selector = _id: user._id
+            modifier = $set: {}
+            unless user_portlets[ route ]
+              modifier.$set[ "profile.portlets.#{ route }" ] = user_portlets[ route ]
+            else modifier.$set[ "profile.portlets.#{ route }.#{ portlet.region }" ] = portlet
+            Deps.nonreactive -> Meteor.users.update selector, modifier
+          portlet = Deps.nonreactive -> Meteor.user().profile.portlets[ route ][ portlet.region ]
+      for key, value of portlet
+        Deps.nonreactive => @set portlet.region, key, value
 
     destroy: ( region ) ->
       Luma.Portlets._stop_computation region
@@ -92,7 +101,7 @@ if Meteor.isClient
       validation =
         message: "Preset '#{ preset_name }' successfully loaded"
         status: "success"
-      Luma.Portlet.set "options_validation", validation
+      Luma.Portlets.set "options_validation", validation
 
     save_configuration: ( region ) ->
       new_portlet_preset = $( "#preset-name" ).val()
