@@ -1,16 +1,16 @@
 Template.portlet_options.events
-  "click #load-configuration": ( event, template ) -> Luma.Portlets.load_configuration @region
+  "click #load-configuration": ( event, template ) -> Luma.Portlets.load_configuration template.data.region
 
   "change #load-preset": ( event, template ) ->
-    Luma.Portlets.set @region, "selected_preset", event.val
+    Luma.Portlets.set template.data.region, "selected_preset", event.val
 
   "change #select-user": ( event, template ) ->
-    Luma.Portlets.set @region, "selected_user", event.val
-    Luma.Portlets.set @region, "selected_preset", false
+    Luma.Portlets.set template.data.region, "selected_user", event.val
+    Luma.Portlets.set template.data.region, "selected_preset", false
 
   "click #save-configuration": ( event, template ) ->
     event.preventDefault()
-    Luma.Portlets.save_configuration @region
+    Luma.Portlets.save_configuration template.data.region
 
 Template.portlet_options.rendered = -> Luma.Portlets.initialize_options @data.region
 
@@ -26,17 +26,17 @@ Template.portlet_options.helpers
     userId = Luma.Portlets.get @region, "selected_user"
     preset = Luma.Portlets.get @region, "selected_preset"
     route = Luma.Router.current().route.name
-    template = Luma.Portlets.set @region, "template"
+    portlet = Luma.Portlets.get @region, "portlet"
     if preset and userId
       query = 'profile.id': userId
-      query[ "profile.portlets.#{ route }.#{ @region }.template" ] = template
+      query[ "profile.portlets.#{ route }.#{ @region }.portlet" ] = portlet
       options = {}
       user = Meteor.users.findOne query, options
-      portlet = user.profile.portlets[ route ][ @region ]
+      user_portlet = user.profile.portlets[ route ][ @region ]
       if preset is "CURRENT_CONFIG"
-        config = portlet.config
+        config = user_portlet.config
       else
-        config = portlet.presets[ preset ].config
+        config = user_portlet.presets[ preset ].config
       return JSON.parse config
     else return false
 
@@ -49,14 +49,13 @@ Template.portlet_options.helpers
         has_presets = true
     return has_presets
 
-  selected_user: -> return Session.get "portlet_options:selected_user"
+  selected_user: -> return Luma.Portlets.get @region, "selected_user"
 
   select_user: ->
-    userId = Luma.Portlets.set @region, "selected_user"
     route = Luma.Router.current().route.name
-    template = Luma.Portlets.set @region, "template"
+    portlet = Luma.Portlets.get @region, "portlet"
     query = {}
-    query[ "profile.portlets.#{ route }.#{ @region }.template" ] = template
+    query[ "profile.portlets.#{ route }.#{ @region }.portlet" ] = portlet
     options = {}
     cursor = Meteor.users.find query, options
     return {
@@ -64,7 +63,7 @@ Template.portlet_options.helpers
       options:
         width: '100%'
         placeholder: "Select User..."
-      selected: [ userId ]
+      selected: []
       cursor: cursor
     }
 
@@ -83,14 +82,14 @@ Template.portlet_options.helpers
     }
 
   load_preset: ->
-    userId = Luma.Portlets.set @region, "selected_user"
+    userId = Luma.Portlets.get @region, "selected_user"
     route = Luma.Router.current().route.name
-    template = Luma.Portlets.set @region, "template"
+    portlet = Luma.Portlets.get @region, "portlet"
     query = 'profile.id': userId
-    query[ "profile.portlets.#{ route }.#{ @region }.template" ] = template
+    query[ "profile.portlets.#{ route }.#{ @region }.portlet" ] = portlet
     options = {}
     user = Meteor.users.findOne query, options
-    presets = _.values user.profile.portlets[ Luma.Router.current().route.name ][ @region ].presets
+    presets = _.values user.profile.portlets[ route ][ @region ].presets
     return {
       id: "load-preset"
       options:

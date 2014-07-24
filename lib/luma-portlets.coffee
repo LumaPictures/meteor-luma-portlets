@@ -37,10 +37,14 @@ if Meteor.isClient
         @_dictionaries[ region ].set key, value
       else throw new Error "A ReactiveDict has not been created for region '#{ region }'"
 
+    set_config: ( region, value ) -> @set region, "config", JSON.stringify value
+
     get: ( region, key ) ->
       if @_dictionaries[ region ] and @_dictionaries[ region ].get
         @_dictionaries[ region ].get key
       else throw new Error "A ReactiveDict has not been created for region '#{ region }'"
+
+    get_config: ( region ) -> JSON.parse @get region, "config"
 
     initialize: ( route, portlets ) ->
       if portlets
@@ -62,6 +66,8 @@ if Meteor.isClient
                 Deps.nonreactive -> Meteor.users.update selector, modifier
               portlet = Deps.nonreactive -> Meteor.user().profile.portlets[ route ][ portlet.region ]
           for key, value of portlet
+            console.log "portlet", portlet
+            console.log key, value
             Deps.nonreactive => @set portlet.region, key, value
 
     destroy: ( region ) ->
@@ -82,7 +88,7 @@ if Meteor.isClient
       user = Meteor.users.findOne query, options
       preset = user.profile.portlets[ route ][ region ].presets[ preset_name ]
       for key, value of preset
-        Luma.Portlet.set region, key, value
+        Luma.Portlets.set region, key, value
       validation =
         message: "Preset '#{ preset_name }' successfully loaded"
         status: "success"

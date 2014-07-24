@@ -7,6 +7,6 @@ Template.portlet.destroyed = -> Luma.Portlets.destroy @data.region
 
 Template.portlet.helpers
 
-  template: -> return Luma.Portlets.get( @region, "template" ) or "portlet_placeholder"
+  portlet: -> return Luma.Portlets.get( @region, "portlet" ) or "portlet_placeholder"
 
   config: -> return Luma.Portlets.get @region, "config"
