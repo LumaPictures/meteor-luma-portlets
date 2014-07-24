@@ -1,25 +1,12 @@
 Template.portlet.created = ->
-  @portlet_autorun = Deps.autorun =>
-    portlet = Session.get "portlet:#{ @data.region }"
-    if portlet.config and Meteor.user()
-      route = Luma.Router.current().route
-      user = Meteor.user()
-      portlet_dictionary = {}
-      portlet_dictionary[ portlet.region ] = portlet
-      _.extend user.profile.portlets[ route.name ], portlet_dictionary
-      Meteor.users.update _id: user._id,
-        $set:
-          "profile.portlets": user.profile.portlets
+  Luma.Portlets.create @data.region, Deps.autorun =>
+    if Luma.Portlets.get( @data.region, "config" ) and Meteor.user()
+      Luma.Portlets.persist_user_portlet @data.region, Meteor.userId()
 
-Template.portlet.destroyed = -> @portlet_autorun.stop()
+Template.portlet.destroyed = -> Luma.Portlets.destroy @data.region
 
 Template.portlet.helpers
 
-  template: ->
-    portlet = Session.get "portlet:#{ @region }"
-    template = if Template[ portlet.template ] then portlet.template else "portlet_placeholder"
-    return template
+  template: -> return Luma.Portlets.get( @region, "template" ) or "portlet_placeholder"
 
-  config: ->
-    portlet = Session.get "portlet:#{ @region }"
-    return portlet.config
+  config: -> return Luma.Portlets.get @region, "config"

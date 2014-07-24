@@ -1,9 +1,12 @@
 <template name="portlet_config">
     <div class="form-group">
         <div class="row">
-            <pre>
-{{toJSON portlet.config }}
-            </pre>
+            <div class="col-sm-12">
+                <h2>{{region}} : {{template}}</h2>
+                <pre>
+{{toJSON config }}
+                </pre>
+            </div>
         </div>
     </div>
 </template>

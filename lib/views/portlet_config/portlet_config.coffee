@@ -1,3 +1,5 @@
 Template.portlet_config.helpers
 
-  portlet: -> return Session.get "portlet:#{ @region }"
+  config: -> return Luma.Portlets.get @region, "config"
+
+  template: -> return Luma.Portlets.get @region, "template"

@@ -16,7 +16,8 @@ Package.on_use(function (api, where) {
     'jquery',
     'ui',
     'templating',
-    'spacebars'
+    'spacebars',
+    'reactive-dict'
   ], [ 'client' ]);
 
   api.export([], ['client','server']);
