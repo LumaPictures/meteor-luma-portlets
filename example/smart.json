@@ -1,0 +1,8 @@
+{
+  "packages": {
+    "luma-portlets": {
+      "path": ".."
+    },
+    "luma-ui": {}
+  }
+}

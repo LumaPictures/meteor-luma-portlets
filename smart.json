@@ -1,0 +1,9 @@
+{
+  "name": "luma-portlets",
+  "description": "Portlets and portlet configurations for Luma Meteor apps",
+  "homepage": "https://github.com/LumaPictures/meteor-luma-portlets",
+  "author": "Austin Rivas <austinrivas@gmail.com> (https://github.com/austinrivas)",
+  "version": "0.0.1",
+  "git": "https://github.com/LumaPictures/meteor-luma-portlets",
+  "packages": {}
+}
