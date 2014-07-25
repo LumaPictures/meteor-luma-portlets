@@ -1,7 +1,6 @@
 Template.portlet.created = ->
-  Luma.Portlets.create @data.region, Deps.autorun =>
-    if Luma.Portlets.get( @data.region, "config" ) and Meteor.user()
-      Luma.Portlets.persist_user_portlet @data.region, Meteor.userId()
+  userId = Meteor.userId()
+  Luma.Portlets.create @data.region, Deps.autorun => Luma.Portlets.persist_user_portlet @data.region, userId
 
 Template.portlet.destroyed = -> Luma.Portlets.destroy @data.region
 

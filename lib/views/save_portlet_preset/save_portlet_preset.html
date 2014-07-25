@@ -1,0 +1,28 @@
+<template name="save_portlet_preset">
+    <div class="row">
+        <div class="{{#if current_user_has_presets }}col-sm-5{{else}}col-sm-12{{/if}}">
+            <input id="preset-name" type="text" placeholder="Save As" class="form-control" style="height:100%;"/>
+        </div>
+        {{#if current_user_has_presets }}
+        <div class="col-sm-2" style="text-align:center;">
+            <h4>OR</h4>
+        </div>
+        <div class="col-sm-5">
+            {{#Select2 select_preset }}
+                {{#each select_preset.cursor }}
+                <option value="{{name}}">{{name}}</option>
+                {{/each}}
+            {{/Select2}}
+        </div>
+        {{/if}}
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-lg-12">
+            {{#alert trigger=preset_save_validation status=preset_save_validation.status }}
+                {{preset_save_validation.message}}
+            {{/alert}}
+            <button id="save-configuration" class="btn btn-block btn-success" type="button">Save</button>
+        </div>
+    </div>
+</template>

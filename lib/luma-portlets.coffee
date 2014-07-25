@@ -16,7 +16,10 @@ if Meteor.isClient
 
     _add_computation: ( region, computation ) -> @_computations[ region ] = computation
 
-    _stop_computation: ( region ) -> @_computations[ region ].stop() if @_computations[ region ] and @_computations[ region ].stop
+    _stop_computation: ( region ) ->
+      if @_computations[ region ] and @_computations[ region ].stop
+        @_computations[ region ].stop()
+        delete @_computations[ region ]
 
     _add_dictionary: ( region ) -> @_dictionaries[ region ] = new ReactiveDict()
 
@@ -30,29 +33,42 @@ if Meteor.isClient
         return dictionary
 
     persist_user_portlet: ( region, userId, route = null ) ->
-      user = Meteor.users.findOne _id: userId
+      user = Deps.nonreactive -> Meteor.users.findOne _id: userId
       route ?= Luma.Router.current().route.name
       if user and user.profile.portlets
-        portlet = Luma.Portlets._copy_dictionary region
-        user.profile.portlets[ route ][ region ] ?= {}
-        _.extend user.profile.portlets[ route ][ region ], portlet
-        Meteor.users.update _id: user._id,
-          $set:
-            "profile.portlets": user.profile.portlets
+        selector = _id: user._id
+        modifier = $set: {}
+        portlet =
+          region: region
+          config: Luma.Portlets.get region, "config"
+          portlet: Luma.Portlets.get region, "portlet"
+          data: Luma.Portlets.get region, "data"
+          presets: Luma.Portlets.get region, "presets"
+        unless user.profile.portlets[ route ]
+          modifier.$set[ "profile.portlets.#{ route }" ] = {}
+          Meteor.users.update selector, modifier
+        modifier.$set[ "profile.portlets.#{ route }.#{ region }" ] = portlet
+        Meteor.users.update selector, modifier
 
-    set: ( region, key, value ) ->
+    set: ( region, key, value, reactive = true ) ->
       if @_dictionaries[ region ] and @_dictionaries[ region ].set
-        @_dictionaries[ region ].set key, value
+        if reactive
+          @_dictionaries[ region ].set key, value
+        else Deps.nonreactive => @_dictionaries[ region ].set key, value
       else throw new Error "A ReactiveDict has not been created for region '#{ region }'"
 
-    set_config: ( region, value ) -> @set region, "config", JSON.stringify value
+    set_config: ( region, config = {}, reactive = true ) -> @set region, "config", JSON.stringify config, reactive
 
-    get: ( region, key ) ->
+    get: ( region, key, reactive = true ) ->
       if @_dictionaries[ region ] and @_dictionaries[ region ].get
-        @_dictionaries[ region ].get key
+        if reactive
+          @_dictionaries[ region ].get key
+        else Deps.nonreactive => @_dictionaries[ region ].get key
       else throw new Error "A ReactiveDict has not been created for region '#{ region }'"
 
-    get_config: ( region ) -> JSON.parse @get region, "config"
+    get_config: ( region, reactive = true ) ->
+      config = @get region, "config", reactive
+      return JSON.parse config
 
     initialize: ( route, portlets ) ->
       if _.isArray portlets
@@ -62,22 +78,28 @@ if Meteor.isClient
 
     initialize_portlet: ( route, portlet ) ->
       @_add_dictionary portlet.region
-      if _.isObject portlet.config
-        user = Deps.nonreactive -> Meteor.user()
-        if _.isObject user
-          user_portlets = user.profile.portlets
-          user_portlets[ route ] = {} unless user_portlets[ route ]
-          unless user_portlets[ route ][ portlet.region ]
-            user_portlets[ route ][ portlet.region ] = portlet
-            selector = _id: user._id
-            modifier = $set: {}
-            unless user_portlets[ route ]
-              modifier.$set[ "profile.portlets.#{ route }" ] = user_portlets[ route ]
-            else modifier.$set[ "profile.portlets.#{ route }.#{ portlet.region }" ] = portlet
-            Deps.nonreactive -> Meteor.users.update selector, modifier
-          portlet = Deps.nonreactive -> Meteor.user().profile.portlets[ route ][ portlet.region ]
+      user = Deps.nonreactive -> Meteor.user()
+      if _.isObject user
+        user_portlets = user.profile.portlets
+        user_portlets[ route ] = {} unless user_portlets[ route ]
+        unless user_portlets[ route ][ portlet.region ]
+          user_portlets[ route ][ portlet.region ] = portlet
+          selector = _id: user._id
+          modifier = $set: {}
+          unless user_portlets[ route ]
+            modifier.$set[ "profile.portlets.#{ route }" ] = user_portlets[ route ]
+          else modifier.$set[ "profile.portlets.#{ route }.#{ portlet.region }" ] = portlet
+          Deps.nonreactive -> Meteor.users.update selector, modifier
+        portlet = Deps.nonreactive -> Meteor.user().profile.portlets[ route ][ portlet.region ]
       for key, value of portlet
         Deps.nonreactive => @set portlet.region, key, value
+
+    initialize_portlet_config: ( region, template ) ->
+      if _.isFunction Luma.Portlets._portlets[ template ].config
+        unless Luma.Portlets.get region, "config"
+          Luma.Portlets._portlets[ template ].config region
+      else Luma.Portlets.set_config region, {}
+
 
     destroy: ( region ) ->
       Luma.Portlets._stop_computation region
@@ -107,6 +129,7 @@ if Meteor.isClient
       new_portlet_preset = $( "#preset-name" ).val()
       existing_portlet_preset = $( "#select-preset" ).val()
       validation = false
+      route_name = Luma.Router.current().route.name
       if new_portlet_preset and existing_portlet_preset
         validation =
           message: "You must either create a new preset, or select an existing preset. Not Both."
@@ -114,43 +137,53 @@ if Meteor.isClient
       else
         value = new_portlet_preset if new_portlet_preset
         value = existing_portlet_preset if existing_portlet_preset
-        value = value.toUpperCase()
-        user = Meteor.user()
-        portlet = user.profile.portlets[ Luma.Router.current().route.name ][ region ]
-        presets = portlet.presets
-        config = Deps.nonreactive => Luma.Portlets.get region, "config"
-        if new_portlet_preset
-          unless value.length
-            validation =
-              message: "All presets must have a name"
-              status: "danger"
-          if presets[ value ]
-            validation =
-              message: "All presets must have a unique name"
-              status: "danger"
-          else
-            presets[ value ] =
-              name: value
-              config: config
-        if existing_portlet_preset
-          unless presets[ value ]
-            validation =
-              message: "Selected preset does not exist"
-              status: "danger"
-          if presets[ value ] is config
-            validation =
-              message: "Current configuration is identical to the preset"
-              status: "danger"
+        if value
+          value = value.toUpperCase()
+          user = Meteor.user()
+          portlet = user.profile.portlets[ route_name ][ region ]
+          presets = portlet.presets
+          config = Deps.nonreactive => Luma.Portlets.get region, "config"
+          if new_portlet_preset
+            unless value.length
+              validation =
+                message: "All presets must have a name"
+                status: "danger"
+            if presets[ value ]
+              validation =
+                message: "All presets must have a unique name"
+                status: "danger"
+            else
+              presets[ value ] =
+                name: value
+                config: config
+          if existing_portlet_preset
+            unless presets[ value ]
+              validation =
+                message: "Selected preset does not exist"
+                status: "danger"
+            if presets[ value ].config is config
+              validation =
+                message: "Current configuration is identical to the preset"
+                status: "danger"
+        else
+          validation =
+            message: "You must either create a new preset, or select an existing preset."
+            status: "danger"
         unless validation
+          selector = _id: user._id
           modifier = $set: {}
-          modifier.$set[ "profile.portlets.#{ Luma.Router.current().route.name }.#{ region }.presets" ] = presets
-          result = Meteor.users.update _id: user._id, modifier
+          modifier.$set[ "profile.portlets.#{ route_name }.#{ region }.presets.#{ value }" ] =
+            name: value
+            config: config
+          result = Meteor.users.update selector, modifier
+          console.log "selector", selector
+          console.log "modifier", modifier
+          console.log "result", result
           if result
             validation =
               message: "Portlet Config '#{ value }' successfully saved"
               status: "success"
-            if new_portlet_preset
-              $( "#preset-name" ).val ""
+            $( "#preset-name" ).val "" if new_portlet_preset
           else
             validation =
               message: "An error occurred while saving"
@@ -159,9 +192,9 @@ if Meteor.isClient
 
     initialize_options: ( region ) ->
       route = Luma.Router.current().name
-      template = Luma.Portlets.get region, "template"
+      portlet = Luma.Portlets.get region, "portlet"
       query = {}
-      query[ "profile.portlets.#{ route }.#{ region }.template" ] = template
+      query[ "profile.portlets.#{ route }.#{ region }.portlet" ] = portlet
       options = {}
       Meteor.subscribe "user_profiles", query, options
       Luma.Portlets.set region, "selected_preset", false

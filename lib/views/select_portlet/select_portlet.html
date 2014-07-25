@@ -1,21 +1,12 @@
-<template name="portlet_config">
+<template name="select_portlet">
     <div class="form-group">
         <div class="row">
             <div class="col-sm-12">
-                <h2>Change Portlet</h2>
                 {{#Select2 select_portlet }}
                     {{#each select_portlet.cursor }}
                         <option value="{{template}}">{{label}}</option>
                     {{/each}}
                 {{/Select2}}
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-12">
-                <h2>{{region}} : {{portlet}}</h2>
-                <pre>
-{{toJSON config }}
-                </pre>
             </div>
         </div>
     </div>

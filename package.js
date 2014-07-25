@@ -33,8 +33,12 @@ Package.on_use(function (api, where) {
     'lib/views/portlet_placeholder/portlet_placeholder.coffee',
     'lib/views/portlet_options/portlet_options.html',
     'lib/views/portlet_options/portlet_options.coffee',
-    'lib/views/portlet_config/portlet_config.html',
-    'lib/views/portlet_config/portlet_config.coffee'
+    'lib/views/select_portlet/select_portlet.html',
+    'lib/views/select_portlet/select_portlet.coffee',
+    'lib/views/save_portlet_preset/save_portlet_preset.html',
+    'lib/views/save_portlet_preset/save_portlet_preset.coffee',
+    'lib/views/load_portlet_preset/load_portlet_preset.html',
+    'lib/views/load_portlet_preset/load_portlet_preset.coffee'
   ], [ 'client' ]);
 });
 
