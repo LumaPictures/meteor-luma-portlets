@@ -111,19 +111,13 @@ if Meteor.isClient
     load_configuration: ( region ) ->
       route = Luma.Router.current().route.name
       preset_name = Luma.Portlets.get region, "selected_preset"
-      userId = Luma.Portlets.get region, "selected_user"
-      template = Luma.Portlets.get region, "template"
-      query = 'profile.id': userId
-      query[ "profile.portlets.#{ route }.#{ region }.template" ] = template
-      options = {}
-      user = Meteor.users.findOne query, options
-      preset = user.profile.portlets[ route ][ region ].presets[ preset_name ]
-      for key, value of preset
-        Luma.Portlets.set region, key, value
+      preset = Meteor.user().profile.portlets[ route ][ region ].presets[ preset_name ]
+      console.log "preset", preset.config
+      Luma.Portlets.set region, "config", preset.config
       validation =
         message: "Preset '#{ preset_name }' successfully loaded"
         status: "success"
-      Luma.Portlets.set "options_validation", validation
+      Luma.Portlets.set region, "load_validation", validation
 
     save_configuration: ( region ) ->
       new_portlet_preset = $( "#preset-name" ).val()
@@ -176,9 +170,6 @@ if Meteor.isClient
             name: value
             config: config
           result = Meteor.users.update selector, modifier
-          console.log "selector", selector
-          console.log "modifier", modifier
-          console.log "result", result
           if result
             validation =
               message: "Portlet Config '#{ value }' successfully saved"
@@ -192,6 +183,8 @@ if Meteor.isClient
 
     initialize_options: ( region ) ->
       route = Luma.Router.current().name
+      selected_user = Meteor.user().profile.id
+      selected_preset = "CURRENT_CONFIG"
       portlet = Luma.Portlets.get region, "portlet"
       query = {}
       query[ "profile.portlets.#{ route }.#{ region }.portlet" ] = portlet
