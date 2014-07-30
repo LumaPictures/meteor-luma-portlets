@@ -1,15 +1,11 @@
 <template name="portlet_placeholder">
-    {{#modal_launcher selector=portlet_options.selector }}
+    {{#modal_launcher
+        template=portlet_options.template
+        label=portlet_options.label
+        data=portlet_options.data
+    }}
         <div class="portlet-placeholder">
             <h2>Click to Add Portlet</h2>
         </div>
     {{/modal_launcher}}
-    {{#if is_modal_visible portlet_options.selector }}
-        {{#modal selector=portlet_options.selector }}
-            {{> modal_header icon="icon-cogs" label=portlet_options.label }}
-            {{#modal_body styles="with-padding" }}
-                {{> UI.dynamic template=portlet_options.template }}
-            {{/modal_body}}
-        {{/modal}}
-    {{/if}}
 </template>

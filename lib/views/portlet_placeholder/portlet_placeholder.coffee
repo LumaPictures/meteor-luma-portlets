@@ -1,8 +1,9 @@
 Template.portlet_placeholder.helpers
 
   portlet_options: ->
+    data = @
     return {
-      selector: "#{ @region }-portlet-options"
       label: "Portlet Options"
       template: "portlet_options"
+      data: data
     }
