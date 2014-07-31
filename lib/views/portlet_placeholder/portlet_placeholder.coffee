@@ -6,4 +6,5 @@ Template.portlet_placeholder.helpers
       label: "Portlet Options"
       template: "portlet_options"
       data: data
+      icon: "icon-cogs"
     }
